@@ -1,0 +1,23 @@
+service: hello
+
+frameworkVersion: ">=1.28.0 <2.0.0"
+
+provider:
+  name: "aws"
+  runtime: "go1.x"
+  tags:
+    owner: "stefan@arentz.ca"
+    experiment: "true"
+
+package:
+ exclude:
+   - "./**"
+ include:
+   - "./bin/**"
+
+functions:
+  hello:
+    handler: "bin/hello"
+    memorySize: 128
+    environment:
+      HELLO_NAME: "Stefan"

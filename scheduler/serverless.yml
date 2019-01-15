@@ -1,0 +1,69 @@
+service: scheduler
+
+frameworkVersion: ">=1.28.0 <2.0.0"
+
+provider:
+  name: "aws"
+  runtime: "go1.x"
+  tags:
+    owner: "stefan@arentz.ca"
+    experiment: "true"
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - sqs:GetQueueUrl
+        - sqs:SendMessage
+        - sqs:DeleteMessage
+      Resource: arn:aws:sqs:*:*:${self:custom.tasks_queue_name}
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+      Resource: "*"
+
+custom:
+  stage: ${opt:stage, self:provider.stage}
+  prefix: ${self:custom.stage}-${self:service}
+  tasks_queue_name: ${self:custom.prefix}-tasks
+
+package:
+ exclude:
+   - "./**"
+ include:
+   - "./bin/**"
+
+functions:
+  hello:
+    handler: "bin/hello"
+    memorySize: 128
+  submit:
+    handler: "bin/submit"
+    memorySize: 128
+    environment:
+      TASKS_QUEUE_NAME: ${self:custom.tasks_queue_name}
+  execute:
+    handler: "bin/execute"
+    memorySize: 128
+    environment:
+      TASKS_QUEUE_NAME: ${self:custom.tasks_queue_name}
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - TasksQueue
+              - Arn
+  api:
+    handler: "bin/api"
+    memorySize: 128
+    environment:
+      TASKS_QUEUE_NAME: ${self:custom.tasks_queue_name}
+    events:
+      - http:
+          path: api
+          method: post
+
+resources:
+  Resources:
+    TasksQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.tasks_queue_name}

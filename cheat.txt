@@ -1,0 +1,37 @@
+
+Create a new Go project
+
+  sls create --template aws-go --path hello
+
+Provider Makefile
+
+  make build
+
+Deploy the project (does not build Go code)
+
+  sls deploy -v
+
+Invoking a function
+
+  sls invoke -f hello
+
+Invoke a function and also output the logs
+
+  sls invoke -f hello -l
+
+Tail the logs, run from project directory
+
+  sls logs -f hello -t
+
+Clean up and remove the whole stack
+
+  sls remove -v
+
+Deploy just a single function (does not build Go code)
+
+  serverless deploy function -f hello
+
+When you change the serverless.yml file
+
+  TODO What do you do?
+
